@@ -110,6 +110,38 @@ The final search was saved as a scheduled Splunk alert. It successfully matched 
 
 The activity was confirmed as an authorised SOC laboratory simulation. No containment was required.
 
+## Investigation Evidence
+
+### 1. Sysmon Telemetry Coverage
+
+The endpoint supplied the process, network, and file-creation event types required for the investigation.
+
+![Sysmon Event IDs 1, 3, and 11](evidence/01_sysmon_event_counts.png)
+
+### 2. Controlled PowerShell Activity
+
+Splunk recorded the controlled PowerShell process and its test command line.
+
+![Controlled PowerShell process detection](evidence/02_powershell_process_detection.png)
+
+### 3. ProcessGuid Correlation
+
+Event IDs 1, 11, and 3 share one `ProcessGuid`, tying process creation, file creation, and network activity to the same execution.
+
+![ProcessGuid correlation across Sysmon events](evidence/03_processguid_correlation.png)
+
+### 4. Detection Enrichment
+
+The final results present the detection reason, severity, analyst context, and a sanitised parent-process category without exposing unnecessary application names.
+
+![Detection reason, severity, analyst context, and parent category](evidence/04_detection_results.png)
+
+### 5. Alert Notification
+
+The scheduled alert triggered on one matching event and delivered an email notification.
+
+<img src="evidence/05_alert_email_triggered.jpeg" alt="Email notification confirming the Splunk alert triggered" width="360">
+
 ## Repository Structure
 
 ```text
@@ -120,13 +152,18 @@ The activity was confirmed as an authorised SOC laboratory simulation. No contai
 |   |-- processguid-correlation.spl
 |   `-- suspicious-powershell.spl
 |-- evidence/
+|   |-- 01_sysmon_event_counts.png
+|   |-- 02_powershell_process_detection.png
+|   |-- 03_processguid_correlation.png
+|   |-- 04_detection_results.png
+|   |-- 05_alert_email_triggered.jpeg
 |   `-- README.md
 `-- docs/
     |-- README.md
     `-- redaction-checklist.md
 ```
 
-Sanitised screenshots and the Splunk alert export can be added to `evidence/` and `docs/` after completing the redaction checklist. They are intentionally not included until they have been reviewed for credentials, email addresses, instance URLs, account names, and other identifiers.
+The evidence set was reviewed before publication. The raw Splunk CSV and PDF exports were intentionally excluded because they contain an oversized encoded command, unnecessary endpoint identifiers, and poorly formatted split tables. No credentials, tokens, private Splunk URLs, or email addresses are included.
 
 ## Skills Demonstrated
 
