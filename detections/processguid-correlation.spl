@@ -1,0 +1,16 @@
+index=* sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+| rex field=_raw "<EventID[^>]*>(?<EventID>\d+)</EventID>"
+| rex field=_raw "<Data Name=['\"]ProcessGuid['\"]>(?<ProcessGuid>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]Image['\"]>(?<Image>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]CommandLine['\"]>(?<CommandLine>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]User['\"]>(?<User>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]ParentImage['\"]>(?<ParentImage>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]TargetFilename['\"]>(?<TargetFilename>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]DestinationIp['\"]>(?<DestinationIp>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]DestinationHostname['\"]>(?<DestinationHostname>[^<]+)</Data>"
+| search EventID IN ("1","3","11")
+| eventstats values(eval(if(EventID="1" AND like(CommandLine,"%SOC-LAB-2026-FINAL%"),ProcessGuid,null()))) as TargetGuid
+| eval TargetGuid=mvindex(TargetGuid,0)
+| where ProcessGuid=TargetGuid
+| table _time EventID ProcessGuid User Image ParentImage CommandLine TargetFilename DestinationHostname DestinationIp
+| sort 0 _time

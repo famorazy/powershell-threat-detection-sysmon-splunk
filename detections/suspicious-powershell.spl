@@ -1,0 +1,24 @@
+index=* sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational"
+| rex field=_raw "<EventID[^>]*>(?<EventID>\d+)</EventID>"
+| rex field=_raw "<Data Name=['\"]ProcessGuid['\"]>(?<ProcessGuid>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]Image['\"]>(?<Image>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]CommandLine['\"]>(?<CommandLine>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]User['\"]>(?<User>[^<]+)</Data>"
+| rex field=_raw "<Data Name=['\"]ParentImage['\"]>(?<ParentImage>[^<]+)</Data>"
+| where EventID="1"
+| where match(Image,"(?i)\\\\powershell\.exe$")
+| where match(CommandLine,"(?i)(Invoke-WebRequest|DownloadString|EncodedCommand|(?:^|\s)-(?:enc|encodedcommand)(?:\s|$))")
+| eval DetectionReason=case(
+    match(CommandLine,"(?i)(EncodedCommand|(?:^|\s)-(?:enc|encodedcommand)(?:\s|$))"),"Encoded PowerShell",
+    match(CommandLine,"(?i)DownloadString"),"DownloadString execution",
+    match(CommandLine,"(?i)Invoke-WebRequest"),"PowerShell web request",
+    true(),"Suspicious PowerShell")
+| eval Severity=case(
+    match(CommandLine,"(?i)(EncodedCommand|DownloadString|(?:^|\s)-(?:enc|encodedcommand)(?:\s|$))"),"High",
+    match(CommandLine,"(?i)Invoke-WebRequest"),"Medium",
+    true(),"Low")
+| eval AnalystContext=case(
+    match(ParentImage,"(?i)\\\\powershell\.exe$"),"PowerShell spawned PowerShell - investigate",
+    true(),"Review parent process, user, destination, and related file activity")
+| table _time User ProcessGuid Image ParentImage DetectionReason Severity AnalystContext CommandLine
+| sort - _time

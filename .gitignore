@@ -1,0 +1,21 @@
+# Raw or potentially sensitive evidence
+evidence/raw/
+docs/raw/
+*.csv
+
+# Local settings and secrets
+.env
+.env.*
+*.key
+*.pem
+*.pfx
+*.p12
+*.token
+credentials*
+secrets*
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
